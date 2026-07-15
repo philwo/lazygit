@@ -206,6 +206,14 @@ func (self *SuggestionsHelper) GetRemoteBranchesSuggestionsFunc(separator string
 	return FilterFunc(self.getRemoteBranchNames(separator), self.c.UserConfig().Gui.UseFuzzySearch())
 }
 
+func (self *SuggestionsHelper) GetUpstreamSuggestionsFunc(currentBranchName string) func(string) []*types.Suggestion {
+	localBranchNames := lo.Filter(self.getBranchNames(), func(branchName string, _ int) bool {
+		return branchName != currentBranchName
+	})
+	remoteBranchNames := self.getRemoteBranchNames(" ")
+	return FilterFunc(append(localBranchNames, remoteBranchNames...), self.c.UserConfig().Gui.UseFuzzySearch())
+}
+
 func (self *SuggestionsHelper) GetRemoteBranchesForRemoteSuggestionsFunc(remoteName string) func(string) []*types.Suggestion {
 	return FilterFunc(self.getRemoteBranchNamesForRemote(remoteName), self.c.UserConfig().Gui.UseFuzzySearch())
 }

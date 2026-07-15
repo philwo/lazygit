@@ -31,24 +31,13 @@ var SetLocalUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 
 				t.ExpectPopup().Prompt().
-					/* EXPECTED:
 					Title(Equals("Enter upstream as '<remote> <branchname>' or '<local branchname>'")).
 					SuggestionTopLines(Equals("main")).
-					ACTUAL: */
-					Title(Equals("Enter upstream as '<remote> <branchname>'")).
 					Type("main").
 					Confirm()
 			}).
-			/* EXPECTED:
 			SelectedLines(
 				Contains("feature").Contains(". main"),
 			)
-			ACTUAL: */
-			Tap(func() {
-				t.ExpectPopup().Alert().
-					Title(Equals("Error")).
-					Content(Equals("Invalid upstream. Must be in the format '<remote> <branchname>'")).
-					Confirm()
-			})
 	},
 })

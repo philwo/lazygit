@@ -182,7 +182,7 @@ func (self *BranchCommands) GetGraphCmdObj(branchName string) *oscommands.CmdObj
 
 func (self *BranchCommands) SetCurrentBranchUpstream(remoteName string, remoteBranchName string) error {
 	cmdArgs := NewGitCmd("branch").
-		Arg(fmt.Sprintf("--set-upstream-to=%s/%s", remoteName, remoteBranchName)).
+		Arg("--set-upstream-to=" + upstreamRefName(remoteName, remoteBranchName)).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
@@ -190,11 +190,19 @@ func (self *BranchCommands) SetCurrentBranchUpstream(remoteName string, remoteBr
 
 func (self *BranchCommands) SetUpstream(remoteName string, remoteBranchName string, branchName string) error {
 	cmdArgs := NewGitCmd("branch").
-		Arg(fmt.Sprintf("--set-upstream-to=%s/%s", remoteName, remoteBranchName)).
+		Arg("--set-upstream-to=" + upstreamRefName(remoteName, remoteBranchName)).
 		Arg(branchName).
 		ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
+}
+
+func upstreamRefName(remoteName string, branchName string) string {
+	if remoteName == "." {
+		return branchName
+	}
+
+	return fmt.Sprintf("%s/%s", remoteName, branchName)
 }
 
 func (self *BranchCommands) UnsetUpstream(branchName string) error {

@@ -66,12 +66,22 @@ func (b *Branch) FullUpstreamRefName() string {
 		return ""
 	}
 
+	// A remote of "." means the upstream is another local branch.
+	if b.UpstreamRemote == "." {
+		return "refs/heads/" + b.UpstreamBranch
+	}
+
 	return fmt.Sprintf("refs/remotes/%s/%s", b.UpstreamRemote, b.UpstreamBranch)
 }
 
 func (b *Branch) ShortUpstreamRefName() string {
 	if b.UpstreamRemote == "" || b.UpstreamBranch == "" {
 		return ""
+	}
+
+	// A remote of "." means the upstream is another local branch.
+	if b.UpstreamRemote == "." {
+		return b.UpstreamBranch
 	}
 
 	return fmt.Sprintf("%s/%s", b.UpstreamRemote, b.UpstreamBranch)
