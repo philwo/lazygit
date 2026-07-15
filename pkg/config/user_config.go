@@ -184,6 +184,8 @@ type GuiConfig struct {
 	CommitHashLength int `yaml:"commitHashLength" jsonschema:"minimum=0"`
 	// If true, show commit hashes alongside branch names in the branches view.
 	ShowBranchCommitHash bool `yaml:"showBranchCommitHash"`
+	// If true, show local branches in the branches view as a tree of stacked branches, where a branch whose upstream is another local branch is nested under that parent. Can be toggled at runtime.
+	ShowBranchTree bool `yaml:"showBranchTree"`
 	// Whether to show the divergence from the base branch in the branches view.
 	// One of: 'none' | 'onlyArrow'  | 'arrowAndNumber'
 	ShowDivergenceFromBaseBranch string `yaml:"showDivergenceFromBaseBranch" jsonschema:"enum=none,enum=onlyArrow,enum=arrowAndNumber"`
@@ -610,6 +612,10 @@ type KeybindingBranchesConfig struct {
 	FetchRemote              Keybinding `yaml:"fetchRemote"`
 	AddForkRemote            Keybinding `yaml:"addForkRemote"`
 	SortOrder                Keybinding `yaml:"sortOrder"`
+	ToggleTreeView           Keybinding `yaml:"toggleTreeView"`
+	ToggleBranchCollapsed    Keybinding `yaml:"toggleBranchCollapsed"`
+	CollapseAllBranches      Keybinding `yaml:"collapseAllBranches"`
+	ExpandAllBranches        Keybinding `yaml:"expandAllBranches"`
 }
 
 type KeybindingCommitsConfig struct {
@@ -914,6 +920,7 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 			CommitAuthorLongLength:              17,
 			CommitHashLength:                    8,
 			ShowBranchCommitHash:                false,
+			ShowBranchTree:                      false,
 			ShowDivergenceFromBaseBranch:        "none",
 			CommandLogSize:                      8,
 			SplitDiff:                           "auto",
@@ -1125,6 +1132,10 @@ func GetDefaultConfigForPlatform(platform string) *UserConfig {
 				FetchRemote:              Keybinding{"f"},
 				AddForkRemote:            Keybinding{"F"},
 				SortOrder:                Keybinding{"s"},
+				ToggleTreeView:           Keybinding{"`"},
+				ToggleBranchCollapsed:    Keybinding{"="},
+				CollapseAllBranches:      Keybinding{"C"},
+				ExpandAllBranches:        Keybinding{"E"},
 			},
 			Commits: KeybindingCommitsConfig{
 				SquashDown:                     Keybinding{"s"},

@@ -57,6 +57,14 @@ type TranslationSet struct {
 	ToggleStagedAllTooltip                string
 	ToggleTreeView                        string
 	ToggleTreeViewTooltip                 string
+	ToggleBranchTreeView                  string
+	ToggleBranchTreeViewTooltip           string
+	ToggleBranchCollapsed                 string
+	ToggleBranchCollapsedTooltip          string
+	CollapseAllBranches                   string
+	CollapseAllBranchesTooltip            string
+	ExpandAllBranches                     string
+	ExpandAllBranchesTooltip              string
 	OpenDiffTool                          string
 	OpenMergeTool                         string
 	Refresh                               string
@@ -1213,6 +1221,14 @@ func EnglishTranslationSet() *TranslationSet {
 		ToggleStagedAllTooltip:               "Toggle staged/unstaged for all files in working tree.",
 		ToggleTreeView:                       "Toggle file tree view",
 		ToggleTreeViewTooltip:                "Toggle file view between flat and tree layout. Flat layout shows all file paths in a single list, tree layout groups files by directory.\n\nThe default can be changed in the config file with the key 'gui.showFileTree'.",
+		ToggleBranchTreeView:                 "Toggle branch tree view",
+		ToggleBranchTreeViewTooltip:          "Toggle the local branches view between a flat list and a tree of stacked branches. In tree layout, a branch whose upstream is another local branch is nested under that parent.\n\nThe default can be changed in the config file with the key 'gui.showBranchTree'.",
+		ToggleBranchCollapsed:                "Collapse/expand stack",
+		ToggleBranchCollapsedTooltip:         "Collapse or expand the sub-stack under the selected branch, hiding or showing its stacked children.",
+		CollapseAllBranches:                  "Collapse all stacks",
+		CollapseAllBranchesTooltip:           "Collapse every sub-stack in the branches tree.",
+		ExpandAllBranches:                    "Expand all stacks",
+		ExpandAllBranchesTooltip:             "Expand every sub-stack in the branches tree.",
 		OpenDiffTool:                         "Open external diff tool (git difftool)",
 		OpenMergeTool:                        "Open external merge tool",
 		Refresh:                              "Refresh",

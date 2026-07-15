@@ -288,6 +288,11 @@ gui:
   # If true, show commit hashes alongside branch names in the branches view.
   showBranchCommitHash: false
 
+  # If true, show local branches in the branches view as a tree of stacked
+  # branches, where a branch whose upstream is another local branch is nested
+  # under that parent. Can be toggled at runtime.
+  showBranchTree: false
+
   # Whether to show the divergence from the base branch in the branches view.
   # One of: 'none' | 'onlyArrow'  | 'arrowAndNumber'
   showDivergenceFromBaseBranch: none
@@ -777,6 +782,10 @@ keybinding:
     fetchRemote: f
     addForkRemote: F
     sortOrder: s
+    toggleTreeView: '`'
+    toggleBranchCollapsed: =
+    collapseAllBranches: C
+    expandAllBranches: E
   commits:
     squashDown: s
     renameCommit: r

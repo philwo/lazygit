@@ -822,6 +822,11 @@
           "description": "If true, show commit hashes alongside branch names in the branches view.",
           "default": false
         },
+        "showBranchTree": {
+          "type": "boolean",
+          "description": "If true, show local branches in the branches view as a tree of stacked branches, where a branch whose upstream is another local branch is nested under that parent. Can be toggled at runtime.",
+          "default": false
+        },
         "showDivergenceFromBaseBranch": {
           "type": "string",
           "enum": [
@@ -1258,6 +1263,62 @@
             }
           ],
           "default": "s"
+        },
+        "toggleTreeView": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "`"
+        },
+        "toggleBranchCollapsed": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "="
+        },
+        "collapseAllBranches": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "C"
+        },
+        "expandAllBranches": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "E"
         }
       },
       "additionalProperties": false,
