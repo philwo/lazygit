@@ -36,10 +36,15 @@ func GetBranchListDisplayStrings(
 	tr *i18n.TranslationSet,
 	userConfig *config.UserConfig,
 	worktrees []*models.Worktree,
+	// treePrefixesByName maps a branch name to its tree connector prefix. It is
+	// nil when the branches view is flat (or when a search filter suppresses the
+	// tree), in which case branches render exactly as before. Keying by name,
+	// not index, lets a missing entry degrade to no prefix.
+	treePrefixesByName map[string]string,
 ) [][]string {
 	return lo.Map(branches, func(branch *models.Branch, _ int) []string {
 		diffed := branch.Name == diffName
-		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, viewWidth, tr, userConfig, worktrees, time.Now(), prs)
+		return getBranchDisplayStrings(branch, getItemOperation(branch), fullDescription, diffed, viewWidth, tr, userConfig, worktrees, time.Now(), prs, treePrefixesByName[branch.Name])
 	})
 }
 
@@ -55,6 +60,7 @@ func getBranchDisplayStrings(
 	worktrees []*models.Worktree,
 	now time.Time,
 	prs map[string]*models.GithubPullRequest,
+	treePrefix string,
 ) []string {
 	checkedOutByWorkTree := git_commands.CheckedOutByOtherWorktree(b, worktrees)
 	showCommitHash := fullDescription || userConfig.Gui.ShowBranchCommitHash
@@ -63,6 +69,9 @@ func getBranchDisplayStrings(
 
 	// Recency is always three characters, plus one for the space
 	availableWidth := viewWidth - 4
+	// The tree connector prefix eats into the width available for the name, so
+	// subtract it here, before the divergence padding is computed below.
+	availableWidth -= utils.StringWidth(treePrefix)
 	if len(divergence) > 0 {
 		availableWidth -= utils.StringWidth(divergence) + 1
 	}
@@ -125,6 +134,9 @@ func getBranchDisplayStrings(
 		displayName = utils.TruncateWithEllipsis(displayName, len)
 	}
 	coloredName := nameTextStyle.Sprint(displayName)
+	if treePrefix != "" {
+		coloredName = style.FgBlackLighter.Sprint(treePrefix) + coloredName
+	}
 	if checkedOutByWorkTree {
 		coloredName = fmt.Sprintf("%s %s", coloredName, style.FgDefault.Sprint(worktreeIcon))
 	}

@@ -111,6 +111,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 		useIcons             bool
 		checkedOutByWorktree bool
 		showDivergenceCfg    string
+		treePrefix           string
 		expected             []string
 	}{
 		// First some tests for when the view is wide enough so that everything fits:
@@ -199,6 +200,23 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 			checkedOutByWorktree: false,
 			showDivergenceCfg:    "onlyArrow",
 			expected:             []string{"1m", "", "branch_name    ↓"},
+		},
+		{
+			// A tree connector prefix eats into the name width, and the
+			// right-aligned divergence must account for the prefix too.
+			branch: &models.Branch{
+				Name:             "branch_name",
+				Recency:          "1m",
+				BehindBaseBranch: *makeAtomic(2),
+			},
+			itemOperation:        types.ItemOperationNone,
+			fullDescription:      false,
+			viewWidth:            23,
+			useIcons:             false,
+			checkedOutByWorktree: false,
+			showDivergenceCfg:    "onlyArrow",
+			treePrefix:           "└─ ",
+			expected:             []string{"1m", "", "└─ branch_name ↓"},
 		},
 		{
 			branch: &models.Branch{
@@ -431,7 +449,7 @@ func Test_getBranchDisplayStrings(t *testing.T) {
 		}
 
 		t.Run(fmt.Sprintf("getBranchDisplayStrings_%d", i), func(t *testing.T) {
-			strings := getBranchDisplayStrings(s.branch, s.itemOperation, s.fullDescription, false, s.viewWidth, c.Tr, c.UserConfig(), worktrees, time.Time{}, map[string]*models.GithubPullRequest{})
+			strings := getBranchDisplayStrings(s.branch, s.itemOperation, s.fullDescription, false, s.viewWidth, c.Tr, c.UserConfig(), worktrees, time.Time{}, map[string]*models.GithubPullRequest{}, s.treePrefix)
 			assert.Equal(t, s.expected, strings)
 		})
 	}
