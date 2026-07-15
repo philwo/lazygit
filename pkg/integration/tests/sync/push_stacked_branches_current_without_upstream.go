@@ -31,7 +31,7 @@ var PushStackedBranchesCurrentWithoutUpstream = NewIntegrationTest(NewIntegratio
 			Confirm()
 
 		t.ExpectPopup().Prompt().
-			Title(Equals("Enter upstream as '<remote> <branchname>'")).
+			Title(Equals("Enter upstream as '<remote> <branchname>' or '<local branchname>'")).
 			InitialText(Equals("origin branch4")).
 			Confirm()
 

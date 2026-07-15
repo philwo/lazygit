@@ -15,11 +15,7 @@ func TestBranch_UpstreamRefNames(t *testing.T) {
 
 	t.Run("local upstream", func(t *testing.T) {
 		b := &Branch{UpstreamRemote: ".", UpstreamBranch: "main"}
-		/* EXPECTED:
 		assert.Equal(t, "main", b.ShortUpstreamRefName())
 		assert.Equal(t, "refs/heads/main", b.FullUpstreamRefName())
-		ACTUAL: */
-		assert.Equal(t, "./main", b.ShortUpstreamRefName())
-		assert.Equal(t, "refs/remotes/./main", b.FullUpstreamRefName())
 	})
 }

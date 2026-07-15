@@ -29,7 +29,7 @@ var SetUpstream = NewIntegrationTest(NewIntegrationTestArgs{
 					Confirm()
 
 				t.ExpectPopup().Prompt().
-					Title(Equals("Enter upstream as '<remote> <branchname>'")).
+					Title(Equals("Enter upstream as '<remote> <branchname>' or '<local branchname>'")).
 					SuggestionLines(Equals("origin master")).
 					ConfirmFirstSuggestion()
 			}).
