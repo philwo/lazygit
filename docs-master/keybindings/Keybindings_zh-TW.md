@@ -305,6 +305,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | 重新命名分支 |  |
 | `` u `` | 檢視遠端設定 | 檢視有關遠端分支的設定（例如重設至遠端） |
 | `` <ctrl+t> `` | 開啟外部差異工具 (git difftool) |  |
+| `` ` `` | Toggle branch tree view | Toggle the local branches view between a flat list and a tree of stacked branches. In tree layout, a branch whose upstream is another local branch is nested under that parent.<br><br>The default can be changed in the config file with the key 'gui.showBranchTree'. |
+| `` = `` | Collapse/expand stack | Collapse or expand the sub-stack under the selected branch, hiding or showing its stacked children. |
+| `` C `` | Collapse all stacks | Collapse every sub-stack in the branches tree. |
+| `` E `` | Expand all stacks | Expand every sub-stack in the branches tree. |
 | `` 0 `` | Focus main view |  |
 | `` <enter> `` | 檢視提交 |  |
 | `` / `` | 搜尋 |  |

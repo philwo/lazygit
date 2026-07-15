@@ -1196,10 +1196,15 @@ func (self *RefreshHelper) refreshBranches(captured capturedBranchState, waitFor
 		// Setting the selection here, in the same bounce that writes the list,
 		// keeps it on the UI thread and keeps the list and selection updating in
 		// the same frame.
+		scrollSelectionIntoView := false
 		switch branchSelection {
 		case types.KeepBranchSelectionByName:
 			if prevSelectedBranch != nil {
 				self.searchHelper.ReApplyFilter(self.c.Contexts().Branches)
+
+				// In tree mode the branch may be hidden under a collapsed
+				// ancestor; expand the ancestors so it can be found again.
+				self.c.Contexts().Branches.ExpandAncestorsOf(prevSelectedBranch.Name)
 
 				_, idx, found := lo.FindIndexOf(self.c.Contexts().Branches.GetItems(),
 					func(b *models.Branch) bool { return b.Name == prevSelectedBranch.Name })
@@ -1208,8 +1213,26 @@ func (self *RefreshHelper) refreshBranches(captured capturedBranchState, waitFor
 				}
 			}
 		case types.SelectCheckedOutBranch:
-			// The checked-out branch is always at the top of the list.
-			self.c.Contexts().Branches.SetSelectedLineIdx(0)
+			if len(branches) > 0 {
+				self.searchHelper.ReApplyFilter(self.c.Contexts().Branches)
+
+				// The loader keeps the checked-out branch at index 0 of the flat
+				// model, but the list can order it differently: in tree mode the
+				// order comes from the stack structure. So expand its ancestors
+				// and select it by name.
+				headBranchName := branches[0].Name
+				self.c.Contexts().Branches.ExpandAncestorsOf(headBranchName)
+				self.c.Contexts().Branches.SelectBranchByNameOrAncestor(headBranchName)
+				scrollSelectionIntoView = true
+			}
+		}
+
+		if scrollSelectionIntoView {
+			// Enqueued from within this bounce so it runs after refreshView's
+			// render below (which was enqueued first).
+			self.onUIThreadUnlessRepoChanged(env, func() {
+				self.c.Contexts().Branches.FocusLine(true)
+			})
 		}
 
 		// Need to re-render the commits view because the visualization of local

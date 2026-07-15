@@ -112,6 +112,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | Renomear branch |  |
 | `` u `` | View upstream options | View options relating to the branch's upstream e.g. setting/unsetting the upstream and resetting to the upstream. |
 | `` <ctrl+t> `` | Abrir ferramenta de diff externa (git difftool) |  |
+| `` ` `` | Toggle branch tree view | Toggle the local branches view between a flat list and a tree of stacked branches. In tree layout, a branch whose upstream is another local branch is nested under that parent.<br><br>The default can be changed in the config file with the key 'gui.showBranchTree'. |
+| `` = `` | Collapse/expand stack | Collapse or expand the sub-stack under the selected branch, hiding or showing its stacked children. |
+| `` C `` | Collapse all stacks | Collapse every sub-stack in the branches tree. |
+| `` E `` | Expand all stacks | Expand every sub-stack in the branches tree. |
 | `` 0 `` | Focar visualização principal |  |
 | `` <enter> `` | Ver commits |  |
 | `` / `` | Filtrar a visualização atual por texto |  |

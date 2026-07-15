@@ -193,6 +193,61 @@ func (self *BranchesController) GetKeybindings(opts types.KeybindingsOpts) []*ty
 			GetDisabledReason: self.require(self.singleItemSelected()),
 			Description:       self.c.Tr.OpenDiffTool,
 		},
+		{
+			Keys:        opts.GetKeys(opts.Config.Branches.ToggleTreeView),
+			Handler:     self.toggleTreeView,
+			Description: self.c.Tr.ToggleBranchTreeView,
+			Tooltip:     self.c.Tr.ToggleBranchTreeViewTooltip,
+		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Branches.ToggleBranchCollapsed),
+			Handler:           self.toggleBranchCollapsed,
+			Description:       self.c.Tr.ToggleBranchCollapsed,
+			Tooltip:           self.c.Tr.ToggleBranchCollapsedTooltip,
+			GetDisabledReason: self.require(self.isInTreeMode),
+		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Branches.CollapseAllBranches),
+			Handler:           self.collapseAllBranches,
+			Description:       self.c.Tr.CollapseAllBranches,
+			Tooltip:           self.c.Tr.CollapseAllBranchesTooltip,
+			GetDisabledReason: self.require(self.isInTreeMode),
+		},
+		{
+			Keys:              opts.GetKeys(opts.Config.Branches.ExpandAllBranches),
+			Handler:           self.expandAllBranches,
+			Description:       self.c.Tr.ExpandAllBranches,
+			Tooltip:           self.c.Tr.ExpandAllBranchesTooltip,
+			GetDisabledReason: self.require(self.isInTreeMode),
+		},
+	}
+}
+
+func (self *BranchesController) GetOnClick() func(opts gocui.ViewMouseBindingOpts) error {
+	return func(opts gocui.ViewMouseBindingOpts) error {
+		if !self.context().InTreeMode() {
+			return nil
+		}
+
+		branch := self.context().GetSelected()
+		if branch == nil {
+			return nil
+		}
+
+		node, ok := self.context().GetBranchNode(branch.Name)
+		if !ok || !node.HasChildren || node.Depth == 0 {
+			return nil
+		}
+
+		// The node's own connector glyph sits at column 4 + 3*(depth-1): 4 for
+		// the recency and PR columns, then 3 columns per ancestor level. Only a
+		// click on the glyph and its trailing space toggles the sub-stack.
+		glyphStart := 4 + 3*(node.Depth-1)
+		if opts.X < glyphStart || opts.X > glyphStart+1 {
+			return nil
+		}
+
+		return self.toggleBranchCollapsed()
 	}
 }
 
@@ -402,6 +457,54 @@ func (self *BranchesController) Context() types.Context {
 
 func (self *BranchesController) context() *context.BranchesContext {
 	return self.c.Contexts().Branches
+}
+
+// mutateTreeAndReselect remembers the selected branch, applies a tree-state
+// change (toggle, collapse, expand), then reselects that branch. Any tree
+// mutation reorders or hides rows, so we always reselect by name, falling back
+// to the nearest visible ancestor if the branch got hidden.
+func (self *BranchesController) mutateTreeAndReselect(mutate func()) error {
+	var selectedName string
+	if branch := self.context().GetSelected(); branch != nil {
+		selectedName = branch.Name
+	}
+
+	mutate()
+
+	if selectedName != "" {
+		self.context().SelectBranchByNameOrAncestor(selectedName)
+	}
+	self.c.PostRefreshUpdate(self.context())
+	return nil
+}
+
+func (self *BranchesController) toggleTreeView() error {
+	return self.mutateTreeAndReselect(self.context().ToggleShowTree)
+}
+
+func (self *BranchesController) toggleBranchCollapsed() error {
+	branch := self.context().GetSelected()
+	if branch == nil {
+		return nil
+	}
+	return self.mutateTreeAndReselect(func() {
+		self.context().ToggleBranchCollapsed(branch.Name)
+	})
+}
+
+func (self *BranchesController) collapseAllBranches() error {
+	return self.mutateTreeAndReselect(self.context().CollapseAllBranches)
+}
+
+func (self *BranchesController) expandAllBranches() error {
+	return self.mutateTreeAndReselect(self.context().ExpandAllBranches)
+}
+
+func (self *BranchesController) isInTreeMode() *types.DisabledReason {
+	if !self.context().InTreeMode() {
+		return &types.DisabledReason{Text: self.c.Tr.DisabledInFlatView}
+	}
+	return nil
 }
 
 func (self *BranchesController) press(selectedBranch *models.Branch) error {

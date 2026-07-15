@@ -245,6 +245,10 @@ _This file is auto-generated. To update, make the changes in the pkg/i18n direct
 | `` R `` | 重命名分支 |  |
 | `` u `` | 查看上游选项 | 查看与分支上游相关的选项，例如设置/取消设置上游和重置为上游。 |
 | `` <ctrl+t> `` | 使用外部差异比较工具(git difftool) |  |
+| `` ` `` | Toggle branch tree view | Toggle the local branches view between a flat list and a tree of stacked branches. In tree layout, a branch whose upstream is another local branch is nested under that parent.<br><br>The default can be changed in the config file with the key 'gui.showBranchTree'. |
+| `` = `` | Collapse/expand stack | Collapse or expand the sub-stack under the selected branch, hiding or showing its stacked children. |
+| `` C `` | Collapse all stacks | Collapse every sub-stack in the branches tree. |
+| `` E `` | Expand all stacks | Expand every sub-stack in the branches tree. |
 | `` 0 `` | 聚焦主视图 |  |
 | `` <enter> `` | 查看提交 |  |
 | `` / `` | 通过文本过滤当前视图 |  |
