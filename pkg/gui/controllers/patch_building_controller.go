@@ -210,9 +210,11 @@ func (self *PatchBuildingController) discardSelection() error {
 }
 
 func (self *PatchBuildingController) discardSelectionFromCommit() error {
-	// Reset the current patch if there is one.
+	// Drop any lines that were already toggled into the patch; we only want
+	// to discard the current selection. This must keep the builder active
+	// because toggleSelection below needs it to load the file diff.
 	if !self.c.Git().Patch.PatchBuilder.IsEmpty() {
-		self.c.Git().Patch.PatchBuilder.Reset()
+		self.c.Git().Patch.PatchBuilder.ClearFiles()
 	}
 
 	if err := self.toggleSelection(); err != nil {

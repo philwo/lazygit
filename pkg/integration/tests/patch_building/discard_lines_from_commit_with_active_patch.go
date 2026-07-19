@@ -48,7 +48,6 @@ var DiscardLinesFromCommitWithActivePatch = NewIntegrationTest(NewIntegrationTes
 			Content(Contains("Are you sure you want to discard the selected lines from this commit?")).
 			Confirm()
 
-		/* EXPECTED:
 		t.Views().CommitFiles().
 			IsFocused().
 			Lines(
@@ -60,10 +59,5 @@ var DiscardLinesFromCommitWithActivePatch = NewIntegrationTest(NewIntegrationTes
 			Equals("+1st line"),
 			Equals("+3rd line"),
 		)
-		ACTUAL: */
-		t.ExpectPopup().Alert().
-			Title(Equals("Error")).
-			Content(Contains("bad revision")).
-			Confirm()
 	},
 })

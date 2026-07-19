@@ -305,6 +305,12 @@ func (p *PatchBuilder) Reset() {
 	defer p.mutex.Unlock()
 
 	p.To = ""
+	p.ClearFiles()
+}
+
+// ClearFiles removes all files from the patch but keeps the builder active,
+// so that a new patch can be built for the same commit.
+func (p *PatchBuilder) ClearFiles() {
 	p.fileInfoMap = map[string]*fileInfo{}
 }
 
