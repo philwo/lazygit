@@ -375,6 +375,7 @@ var tests = []*components.IntegrationTest{
 	patch_building.ApplyWithModifiedFileNoConflict,
 	patch_building.CopyRenamedFileDiff,
 	patch_building.DiscardLinesFromCommit,
+	patch_building.DiscardLinesFromCommitWithActivePatch,
 	patch_building.EditLineInPatchBuildingPanel,
 	patch_building.MoveRangeToIndex,
 	patch_building.MoveToEarlierCommit,
