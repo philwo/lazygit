@@ -189,10 +189,104 @@ func (self *BranchCommands) SetCurrentBranchUpstream(remoteName string, remoteBr
 }
 
 func (self *BranchCommands) SetUpstream(remoteName string, remoteBranchName string, branchName string) error {
+	oldUpstream := ""
+	if remoteName == "." {
+		oldUpstream = self.currentUpstream(branchName)
+	}
+
 	cmdArgs := NewGitCmd("branch").
 		Arg("--set-upstream-to=" + upstreamRefName(remoteName, remoteBranchName)).
 		Arg(branchName).
 		ToArgv()
+
+	if err := self.cmd.New(cmdArgs).Run(); err != nil {
+		return err
+	}
+
+	if remoteName == "." {
+		return self.updateDepotToolsBase(branchName, remoteBranchName, oldUpstream)
+	}
+
+	return nil
+}
+
+// currentUpstream returns the short upstream name of branchName ("parent" or
+// "origin/parent"), or "" when the branch has no upstream.
+func (self *BranchCommands) currentUpstream(branchName string) string {
+	cmdArgs := NewGitCmd("rev-parse").
+		Arg("--abbrev-ref", branchName+"@{upstream}").
+		ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	if err != nil {
+		return ""
+	}
+
+	return strings.TrimSpace(output)
+}
+
+// updateDepotToolsBase keeps depot_tools' `git rebase-update` metadata valid
+// after reparenting branchName onto the local branch parent. rebase-update
+// replays a branch from branch.<name>.base, but throws that base away when
+// branch.<name>.base-upstream no longer matches the parent and falls back to
+// the raw merge-base, which after a restack replays the whole old lineage.
+// Migrating both keys keeps the replay limited to the branch's own commits.
+func (self *BranchCommands) updateDepotToolsBase(branchName string, parent string, oldUpstream string) error {
+	mergeBase, err := self.mergeBase(parent, branchName)
+	if err != nil {
+		// No common history, so there is no meaningful base to record.
+		return nil
+	}
+
+	// A usable base marks the start of the branch's own commits: it must be on
+	// the branch and not already covered by the merge-base with the parent.
+	usable := func(base string) bool {
+		return base != "" && self.isAncestor(base, branchName) && !self.isAncestor(base, mergeBase)
+	}
+
+	base := self.getConfigValue("branch." + branchName + ".base")
+	if !usable(base) {
+		base = ""
+		if oldUpstream != "" {
+			if forkPoint, err := self.mergeBase(oldUpstream, branchName); err == nil && usable(forkPoint) {
+				base = forkPoint
+			}
+		}
+		if base == "" {
+			base = mergeBase
+		}
+	}
+
+	if err := self.setConfigValue("branch."+branchName+".base", base); err != nil {
+		return err
+	}
+
+	return self.setConfigValue("branch."+branchName+".base-upstream", parent)
+}
+
+func (self *BranchCommands) mergeBase(a string, b string) (string, error) {
+	cmdArgs := NewGitCmd("merge-base").Arg(a, b).ToArgv()
+
+	output, err := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	return strings.TrimSpace(output), err
+}
+
+func (self *BranchCommands) isAncestor(ancestor string, ref string) bool {
+	cmdArgs := NewGitCmd("merge-base").Arg("--is-ancestor", ancestor, ref).ToArgv()
+
+	return self.cmd.New(cmdArgs).DontLog().Run() == nil
+}
+
+func (self *BranchCommands) getConfigValue(key string) string {
+	cmdArgs := NewGitCmd("config").Arg("--get", key).ToArgv()
+
+	// Errors just mean the key is not set.
+	output, _ := self.cmd.New(cmdArgs).DontLog().RunWithOutput()
+	return strings.TrimSpace(output)
+}
+
+func (self *BranchCommands) setConfigValue(key string, value string) error {
+	cmdArgs := NewGitCmd("config").Arg(key, value).ToArgv()
 
 	return self.cmd.New(cmdArgs).Run()
 }
