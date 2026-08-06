@@ -27,6 +27,12 @@ func (self *Git) RemoteTagDeleted(ref string, tagName string) *Git {
 	})
 }
 
+func (self *Git) ConfigValue(key string, expected string) *Git {
+	return self.expect([]string{"git", "config", "--get", key}, func(actual string) (bool, string) {
+		return actual == expected, fmt.Sprintf("Expected git config '%s' to be '%s', but got '%s'", key, expected, actual)
+	})
+}
+
 func (self *Git) assert(cmdArgs []string, expected string) *Git {
 	self.expect(cmdArgs, func(output string) (bool, string) {
 		return output == expected, fmt.Sprintf("Expected current branch name to be '%s', but got '%s'", expected, output)

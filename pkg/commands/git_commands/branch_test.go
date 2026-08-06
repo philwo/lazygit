@@ -9,6 +9,126 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestBranchSetUpstream(t *testing.T) {
+	type scenario struct {
+		testName         string
+		remoteName       string
+		remoteBranchName string
+		branchName       string
+		runner           *oscommands.FakeCmdObjRunner
+		test             func(error)
+	}
+
+	scenarios := []scenario{
+		{
+			"Remote upstream leaves depot_tools metadata alone",
+			"origin",
+			"main",
+			"feature",
+			oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"branch", "--set-upstream-to=origin/main", "feature"}, "", nil),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Local upstream keeps a valid recorded base",
+			".",
+			"new-parent",
+			"feature",
+			oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-parse", "--abbrev-ref", "feature@{upstream}"}, "old-parent\n", nil).
+				ExpectGitArgs([]string{"branch", "--set-upstream-to=new-parent", "feature"}, "", nil).
+				ExpectGitArgs([]string{"merge-base", "new-parent", "feature"}, "mmm\n", nil).
+				ExpectGitArgs([]string{"config", "--get", "branch.feature.base"}, "aaa\n", nil).
+				ExpectGitArgs([]string{"merge-base", "--is-ancestor", "aaa", "feature"}, "", nil).
+				ExpectGitArgs([]string{"merge-base", "--is-ancestor", "aaa", "mmm"}, "", errors.New("exit status 1")).
+				ExpectGitArgs([]string{"config", "branch.feature.base", "aaa"}, "", nil).
+				ExpectGitArgs([]string{"config", "branch.feature.base-upstream", "new-parent"}, "", nil),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Local upstream falls back to the old fork point when no base is recorded",
+			".",
+			"new-parent",
+			"feature",
+			oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-parse", "--abbrev-ref", "feature@{upstream}"}, "old-parent\n", nil).
+				ExpectGitArgs([]string{"branch", "--set-upstream-to=new-parent", "feature"}, "", nil).
+				ExpectGitArgs([]string{"merge-base", "new-parent", "feature"}, "mmm\n", nil).
+				ExpectGitArgs([]string{"config", "--get", "branch.feature.base"}, "", errors.New("exit status 1")).
+				ExpectGitArgs([]string{"merge-base", "old-parent", "feature"}, "fff\n", nil).
+				ExpectGitArgs([]string{"merge-base", "--is-ancestor", "fff", "feature"}, "", nil).
+				ExpectGitArgs([]string{"merge-base", "--is-ancestor", "fff", "mmm"}, "", errors.New("exit status 1")).
+				ExpectGitArgs([]string{"config", "branch.feature.base", "fff"}, "", nil).
+				ExpectGitArgs([]string{"config", "branch.feature.base-upstream", "new-parent"}, "", nil),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Local upstream records the merge-base when the branch is already restacked",
+			".",
+			"new-parent",
+			"feature",
+			oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-parse", "--abbrev-ref", "feature@{upstream}"}, "old-parent\n", nil).
+				ExpectGitArgs([]string{"branch", "--set-upstream-to=new-parent", "feature"}, "", nil).
+				ExpectGitArgs([]string{"merge-base", "new-parent", "feature"}, "mmm\n", nil).
+				ExpectGitArgs([]string{"config", "--get", "branch.feature.base"}, "ccc\n", nil).
+				ExpectGitArgs([]string{"merge-base", "--is-ancestor", "ccc", "feature"}, "", errors.New("exit status 1")).
+				ExpectGitArgs([]string{"merge-base", "old-parent", "feature"}, "ddd\n", nil).
+				ExpectGitArgs([]string{"merge-base", "--is-ancestor", "ddd", "feature"}, "", nil).
+				ExpectGitArgs([]string{"merge-base", "--is-ancestor", "ddd", "mmm"}, "", nil).
+				ExpectGitArgs([]string{"config", "branch.feature.base", "mmm"}, "", nil).
+				ExpectGitArgs([]string{"config", "branch.feature.base-upstream", "new-parent"}, "", nil),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Local upstream with no previous upstream records the merge-base",
+			".",
+			"new-parent",
+			"feature",
+			oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-parse", "--abbrev-ref", "feature@{upstream}"}, "", errors.New("exit status 128")).
+				ExpectGitArgs([]string{"branch", "--set-upstream-to=new-parent", "feature"}, "", nil).
+				ExpectGitArgs([]string{"merge-base", "new-parent", "feature"}, "mmm\n", nil).
+				ExpectGitArgs([]string{"config", "--get", "branch.feature.base"}, "", errors.New("exit status 1")).
+				ExpectGitArgs([]string{"config", "branch.feature.base", "mmm"}, "", nil).
+				ExpectGitArgs([]string{"config", "branch.feature.base-upstream", "new-parent"}, "", nil),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+		{
+			"Local upstream with unrelated history skips the metadata",
+			".",
+			"new-parent",
+			"feature",
+			oscommands.NewFakeRunner(t).
+				ExpectGitArgs([]string{"rev-parse", "--abbrev-ref", "feature@{upstream}"}, "", errors.New("exit status 128")).
+				ExpectGitArgs([]string{"branch", "--set-upstream-to=new-parent", "feature"}, "", nil).
+				ExpectGitArgs([]string{"merge-base", "new-parent", "feature"}, "", errors.New("exit status 1")),
+			func(err error) {
+				assert.NoError(t, err)
+			},
+		},
+	}
+
+	for _, s := range scenarios {
+		t.Run(s.testName, func(t *testing.T) {
+			instance := buildBranchCommands(commonDeps{runner: s.runner})
+
+			s.test(instance.SetUpstream(s.remoteName, s.remoteBranchName, s.branchName))
+			s.runner.CheckForMissingCalls()
+		})
+	}
+}
+
 func TestBranchGetCommitDifferences(t *testing.T) {
 	type scenario struct {
 		testName          string
