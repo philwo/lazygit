@@ -42,6 +42,7 @@ var tests = []*components.IntegrationTest{
 	branch.BranchesTreeView,
 	branch.BranchesTreeViewCheckoutKeepsOrder,
 	branch.BranchesTreeViewCheckoutScrollsToBranch,
+	branch.BranchesTreeViewStartupSelectsCheckedOutBranch,
 	branch.CheckoutAutostash,
 	branch.CheckoutByName,
 	branch.CheckoutPreviousBranch,

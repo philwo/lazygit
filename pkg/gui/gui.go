@@ -1142,6 +1142,9 @@ func (gui *Gui) loadNewRepo() error {
 	refresh := gui.c.Refresh
 	if isFirstRefreshAfterStartup {
 		isFirstRefreshAfterStartup = false
+		// Nothing is selected yet, so ask for the checked-out branch: in tree
+		// mode it can sit anywhere in the list, and it should be on screen.
+		options.BranchSelection = types.SelectCheckedOutBranch
 	} else {
 		options.BatchUIUpdates = true
 		refresh = gui.c.RefreshBlockingInput
