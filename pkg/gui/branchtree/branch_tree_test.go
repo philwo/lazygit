@@ -19,6 +19,13 @@ func branch(name string, parent string) *models.Branch {
 	return b
 }
 
+// atSortIndex sets the branch's position in the loader's sort order, which the
+// loader records before it moves the checked-out branch to the front.
+func atSortIndex(b *models.Branch, index int) *models.Branch {
+	b.SortIndex = index
+	return b
+}
+
 // remoteBranch builds a branch tracking a real remote, which must never be
 // treated as a stacked child.
 func remoteBranch(name string, remote string, upstream string) *models.Branch {
@@ -189,6 +196,55 @@ func TestBuild(t *testing.T) {
 				{"main", 0, ""},
 				{"feat1", 1, "├─ "},
 				{"experiment", 1, "└─ "},
+			},
+		},
+		{
+			name:     "sibling order follows the sort index, not the model order",
+			showTree: true,
+			// The loader moved the checked-out branch (feat1a) to the front of
+			// the model, but its sort index still puts it last among feat1's
+			// children.
+			branches: []*models.Branch{
+				atSortIndex(branch("feat1a", "feat1"), 3),
+				atSortIndex(branch("main", ""), 0),
+				atSortIndex(branch("feat1", "main"), 1),
+				atSortIndex(branch("feat1b", "feat1"), 2),
+				atSortIndex(branch("develop", ""), 4),
+			},
+			expected: []expectedNode{
+				{"main", 0, ""},
+				{"feat1", 1, "└─ "},
+				{"feat1b", 2, "   ├─ "},
+				{"feat1a", 2, "   └─ "},
+				{"develop", 0, ""},
+			},
+		},
+		{
+			name:     "root order follows the sort index too",
+			showTree: true,
+			branches: []*models.Branch{
+				atSortIndex(branch("develop", ""), 2),
+				atSortIndex(branch("main", ""), 0),
+				atSortIndex(branch("feat1", "main"), 1),
+			},
+			expected: []expectedNode{
+				{"main", 0, ""},
+				{"feat1", 1, "└─ "},
+				{"develop", 0, ""},
+			},
+		},
+		{
+			name:     "flat mode keeps the checked-out branch at the top",
+			showTree: false,
+			branches: []*models.Branch{
+				atSortIndex(branch("feat1a", "feat1"), 3),
+				atSortIndex(branch("main", ""), 0),
+				atSortIndex(branch("feat1", "main"), 1),
+			},
+			expected: []expectedNode{
+				{"feat1a", 0, ""},
+				{"main", 0, ""},
+				{"feat1", 0, ""},
 			},
 		},
 	}

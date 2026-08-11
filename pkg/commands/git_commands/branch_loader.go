@@ -101,6 +101,13 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 		branches = utils.Prepend(branches, branchesWithRecency...)
 	}
 
+	// Record the sort position before moving the checked-out branch to the
+	// front, so that consumers that don't want it hoisted (the tree view, which
+	// derives its order from the stack structure) can restore the sort order.
+	for i, branch := range branches {
+		branch.SortIndex = i
+	}
+
 	foundHead := false
 	for i, branch := range branches {
 		if branch.Head {
@@ -115,7 +122,8 @@ func (self *BranchLoader) Load(reflogCommits []*models.Commit,
 		if err != nil {
 			return nil, err
 		}
-		branches = utils.Prepend(branches, &models.Branch{Name: info.RefName, DisplayName: info.DisplayName, Head: true, DetachedHead: info.DetachedHead, Recency: "  *"})
+		// A detached head isn't part of the sort order at all, so put it first.
+		branches = utils.Prepend(branches, &models.Branch{Name: info.RefName, DisplayName: info.DisplayName, Head: true, DetachedHead: info.DetachedHead, Recency: "  *", SortIndex: -1})
 	}
 
 	configBranches := self.config.Branches(self.cmd)

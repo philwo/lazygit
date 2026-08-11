@@ -35,6 +35,9 @@ type Branch struct {
 	Subject string
 	// commit hash
 	CommitHash string
+	// position in the configured sort order, before the checked-out branch is
+	// moved to the front of the list
+	SortIndex int
 
 	// How far we have fallen behind our base branch. 0 means either not
 	// determined yet, or up to date with base branch. (We don't need to

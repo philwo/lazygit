@@ -53,37 +53,39 @@ var BranchesTreeView = NewIntegrationTest(NewIntegrationTestArgs{
 				Contains("topic"),
 			).
 			// Switch to tree mode: stacked branches nest under their parents
-			// with connector glyphs, and order is re-derived from structure.
+			// with connector glyphs, and the order comes from the structure
+			// plus the configured sort order, which puts develop's stack above
+			// main's.
 			Press(keys.Branches.ToggleTreeView).
 			Lines(
+				Contains("develop"),
+				Contains("└─ hotfix"),
 				Contains("main").IsSelected(),
 				Contains("├─ feat1"),
 				Contains("│  └─ feat1b"),
 				Contains("└─ topic"),
-				Contains("develop"),
-				Contains("└─ hotfix"),
 				Contains("master"),
 			).
 			// Collapse the selected branch's sub-stack: feat1b hides.
 			NavigateToLine(Contains("├─ feat1")).
 			Press(keys.Branches.ToggleBranchCollapsed).
 			Lines(
+				Contains("develop"),
+				Contains("└─ hotfix"),
 				Contains("main"),
 				Contains("├─ feat1").IsSelected(),
 				Contains("└─ topic"),
-				Contains("develop"),
-				Contains("└─ hotfix"),
 				Contains("master"),
 			).
 			// Expand it again: feat1b reappears.
 			Press(keys.Branches.ToggleBranchCollapsed).
 			Lines(
+				Contains("develop"),
+				Contains("└─ hotfix"),
 				Contains("main"),
 				Contains("├─ feat1").IsSelected(),
 				Contains("│  └─ feat1b"),
 				Contains("└─ topic"),
-				Contains("develop"),
-				Contains("└─ hotfix"),
 				Contains("master"),
 			).
 			// Collapse all sub-stacks from a leaf: only roots stay visible, and
@@ -91,19 +93,19 @@ var BranchesTreeView = NewIntegrationTest(NewIntegrationTestArgs{
 			NavigateToLine(Contains("feat1b")).
 			Press(keys.Branches.CollapseAllBranches).
 			Lines(
-				Contains("main").IsSelected(),
 				Contains("develop"),
+				Contains("main").IsSelected(),
 				Contains("master"),
 			).
 			// Expand all sub-stacks: everything is visible again.
 			Press(keys.Branches.ExpandAllBranches).
 			Lines(
+				Contains("develop"),
+				Contains("└─ hotfix"),
 				Contains("main").IsSelected(),
 				Contains("├─ feat1"),
 				Contains("│  └─ feat1b"),
 				Contains("└─ topic"),
-				Contains("develop"),
-				Contains("└─ hotfix"),
 				Contains("master"),
 			).
 			// Back to flat mode: no connectors, selection preserved by name.

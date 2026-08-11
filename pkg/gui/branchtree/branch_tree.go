@@ -6,6 +6,8 @@
 package branchtree
 
 import (
+	"cmp"
+	"slices"
 	"strings"
 
 	"github.com/jesseduffield/generics/set"
@@ -108,11 +110,19 @@ func (self *BranchTree) Build(branches []*models.Branch) []Node {
 		return nodes
 	}
 
-	parent := resolveParents(branches)
+	// Walk the branches in sort order rather than model order: the model hoists
+	// the checked-out branch to the front, which would otherwise move it ahead
+	// of its siblings every time you check something out.
+	sorted := slices.Clone(branches)
+	slices.SortStableFunc(sorted, func(a *models.Branch, b *models.Branch) int {
+		return cmp.Compare(a.SortIndex, b.SortIndex)
+	})
+
+	parent := resolveParents(sorted)
 
 	children := make(map[string][]*models.Branch)
-	roots := make([]*models.Branch, 0, len(branches))
-	for _, branch := range branches {
+	roots := make([]*models.Branch, 0, len(sorted))
+	for _, branch := range sorted {
 		if p := parent[branch.Name]; p != "" {
 			children[p] = append(children[p], branch)
 		} else {
