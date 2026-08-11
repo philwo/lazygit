@@ -40,6 +40,7 @@ var tests = []*components.IntegrationTest{
 	bisect.FromOtherBranch,
 	bisect.Skip,
 	branch.BranchesTreeView,
+	branch.BranchesTreeViewCheckoutKeepsOrder,
 	branch.BranchesTreeViewCheckoutScrollsToBranch,
 	branch.CheckoutAutostash,
 	branch.CheckoutByName,
